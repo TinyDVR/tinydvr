@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 
 object ConfigurationLoader {
 
-  private val CONFIG_FILE_PROPERTY = "tinydvr.user.configuration.file"
+  private val CONFIG_FILE_PROPERTY = "tinydvr.configuration.file"
   private val CONFIG_FILE_DEFAULT = "/etc/tinydvr/tinydvr.conf"
 
   def load(): Configuration =  new Configuration {
@@ -15,8 +15,18 @@ object ConfigurationLoader {
     private val configurationFile = Option(System.getProperty(CONFIG_FILE_PROPERTY)).getOrElse(CONFIG_FILE_DEFAULT)
     private val factory = ConfigFactory.load(configurationFile)
 
-    // Authentication credientials for schedules direct.
-    def schedulesDirectCredientials: SchedulesDirectCredentials = {
+    // The database connection information
+    def databaseInfo: DatabaseConnectionInfo = {
+      val db = factory.getConfig("db")
+      DatabaseConnectionInfo(
+        db.getString("url"),
+        db.getString("username"),
+        db.getString("password")
+      )
+    }
+
+    // Authentication credentials for schedules direct.
+    def schedulesDirectCredentials: SchedulesDirectCredentials = {
       val sd = factory.getConfig("schedules_direct")
       SchedulesDirectCredentials(
         sd.getString("username"),
