@@ -9,15 +9,10 @@
     <inceptionYear>2014</inceptionYear>
     <packaging>war</packaging>
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <akka.version>2.1.4</akka.version>
-        <commons-daemon.version>1.0.8</commons-daemon.version>
-        <commons-exec.version>1.2</commons-exec.version>
-        <commons-io.version>2.4</commons-io.version>
+        <commons-codec.version>1.6</commons-codec.version>
         <config.version>0.4.0</config.version>
-        <h2-connector.version>1.3.164</h2-connector.version>
+        <dispatch.version>0.11.2</dispatch.version>
         <jetty.version>7.6.3.v20120416</jetty.version>
         <jetty-webapp.version>8.1.7.v20120910</jetty-webapp.version>
         <jetty-maven-plugin.version>8.1.5.v20120716</jetty-maven-plugin.version>
@@ -26,11 +21,11 @@
         <lift.version>2.5.1</lift.version>
         <logback.version>0.9.29</logback.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
-        <mysql-connector.version>5.1.6</mysql-connector.version>
-        <netty.version>3.7.0.Final</netty.version>
+        <netty.version>3.7.1.Final</netty.version>
         <scala.version>2.10.4</scala.version>
         <scala.majorVersion>2.10</scala.majorVersion>
         <scalatra.version>2.1.2</scalatra.version>
+        <schedules-direct-client.version>0.0.1</schedules-direct-client.version>
         <servlet-api.version>3.0.1</servlet-api.version>
         <slf4j.version>1.6.1</slf4j.version>
         <squeryl.version>0.9.5-6</squeryl.version>
@@ -41,181 +36,104 @@
         <plugin.maven-resources-plugin.version>2.4.2</plugin.maven-resources-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-core</artifactId>
-                <version>${logback.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.h2database</groupId>
-                <artifactId>h2</artifactId>
-                <version>${h2-connector.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.typesafe</groupId>
-                <artifactId>config</artifactId>
-                <version>${config.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-actor</artifactId>
-                <version>${akka.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-testkit</artifactId>
-                <version>${akka.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-daemon</groupId>
-                <artifactId>commons-daemon</artifactId>
-                <version>${commons-daemon.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
-                <version>${commons-io.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet-api</artifactId>
-                <version>${servlet-api.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>${joda-time.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql-connector.version}</version>
-            </dependency>
-            <!-- Lift-JSON -->
-            <dependency>
-                <groupId>net.liftweb</groupId>
-                <artifactId>lift-json_${scala.majorVersion}</artifactId>
-                <version>${lift.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.scala-lang</groupId>
-                        <artifactId>scala-library</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.scala-lang</groupId>
-                        <artifactId>scalap</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-exec</artifactId>
-                <version>${commons-exec.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
-                <version>${jetty.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
-                <version>${jetty-webapp.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.joda</groupId>
-                <artifactId>joda-convert</artifactId>
-                <version>${joda-convert.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-compiler</artifactId>
-                <version>${scala.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-library</artifactId>
-                <version>${scala.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scalatra</groupId>
-                <artifactId>scalatra</artifactId>
-                <version>${scalatra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.squeryl</groupId>
-                <artifactId>squeryl_${scala.version}</artifactId>
-                <version>${squeryl.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.tinydvr</groupId>
-                <artifactId>tinydvr-config</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
             <version>${config.version}</version>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${joda-time.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.databinder.dispatch</groupId>
+            <artifactId>dispatch-core_${scala.majorVersion}</artifactId>
+            <version>${dispatch.version}</version>
+        </dependency>
+        <!-- Lift-JSON -->
+        <dependency>
             <groupId>net.liftweb</groupId>
-            <artifactId>lift-json_2.10</artifactId>
+            <artifactId>lift-json_${scala.majorVersion}</artifactId>
+            <version>${lift.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scalap</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons-codec.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>${jetty-webapp.version}</version>
         </dependency>
         <dependency>
             <groupId>org.joda</groupId>
             <artifactId>joda-convert</artifactId>
             <version>${joda-convert.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra_${scala.majorVersion}</artifactId>
+            <version>${scalatra.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.squeryl</groupId>
+            <artifactId>squeryl_${scala.majorVersion}</artifactId>
+            <version>${squeryl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tinydvr</groupId>
+            <artifactId>schedules-direct-client</artifactId>
+            <version>${schedules-direct-client.version}</version>
         </dependency>
     </dependencies>
     <!-- Common Build Settings -->
