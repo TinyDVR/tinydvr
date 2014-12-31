@@ -1,6 +1,7 @@
 package org.tinydvr.config
 
 import com.typesafe.config.ConfigFactory
+import java.io.File
 
 object ConfigurationLoader {
 
@@ -13,7 +14,7 @@ object ConfigurationLoader {
     // Load the configuration file from disk
     //
     private val configurationFile = Option(System.getProperty(CONFIG_FILE_PROPERTY)).getOrElse(CONFIG_FILE_DEFAULT)
-    private val factory = ConfigFactory.load(configurationFile)
+    private val factory = ConfigFactory.parseFile(new File(configurationFile))
 
     // The database connection information
     def databaseInfo: DatabaseConnectionInfo = {

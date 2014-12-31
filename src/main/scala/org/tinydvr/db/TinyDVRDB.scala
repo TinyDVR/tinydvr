@@ -63,7 +63,7 @@ object TinyDVRDB extends Schema {
 }
 
 trait TinyDVRDB {
-  def dbInfo: DatabaseConnectionInfo
+  protected def dbInfo: DatabaseConnectionInfo
 
   lazy val tinyDvrDb = new TinyDVRDBAPI(dbInfo)
 }
@@ -71,6 +71,15 @@ trait TinyDVRDB {
 class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
 
   import TinyDVRDB._
+
+  //
+  // Database management
+  //
+  def create() : Unit = {
+    run {
+      TinyDVRDB.create
+    }
+  }
 
   //
   // Lineup Management
