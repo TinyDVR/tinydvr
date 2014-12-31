@@ -124,6 +124,12 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
     }
   }
 
+  def eraseLineup(id: Long): Unit = {
+    run {
+      lineups.deleteWhere(_.id === id)
+    }
+  }
+
   //
   // Program Management
   //
