@@ -1,9 +1,9 @@
 package org.tinydvr.util
 
-import org.squeryl.Session
-import org.squeryl.PrimitiveTypeMode._
-import org.tinydvr.config.DatabaseConnectionInfo
 import org.slf4j.LoggerFactory
+import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.Session
+import org.tinydvr.config.DatabaseConnectionInfo
 
 abstract class DatabaseConnection(db: DatabaseConnectionInfo) {
 

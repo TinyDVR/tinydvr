@@ -20,3 +20,5 @@ case class DatabaseConnectionInfo(url: String, username: String, password: Strin
 }
 
 case class SchedulesDirectCredentials(username: String, password: String)
+case class SchedulingListingConfiguration(retain: Int, fetch: Int)
+case class SchedulingUpdateFrequenciesConfiguration(stations: Int, listings: Int)

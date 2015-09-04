@@ -1,25 +1,13 @@
-package org.tinydvr.service.api
+package org.tinydvr.service
 
 import org.joda.time._
+import org.tinydvr.schedulesdirect.api.ProgramResponse
 
 /**
  * The types served by the core api for tinydvr.
- * Many of these are also used as DTOs or serialized in the database.
  */
 
-case class Program(programID: String, // the program id provided by schedules direct
-                   title: String,
-                   castInfo: List[ProgramPerson],
-                   description: Option[String],
-                   episodeTitle: Option[String],
-                   episode: Option[Int],
-                   genres: List[String],
-                   movieInfo: Option[MovieInfo],
-                   originalAirDate: Option[LocalDate],
-                   season: Option[Int],
-                   showType: Option[String])
-
-case class ScheduledProgram(program: Program,
+case class ScheduledProgram(program: ProgramResponse,
                             stationID: String, // the station ID provided by schedules direct.
                             start: DateTimeDTO,
                             end: DateTimeDTO,

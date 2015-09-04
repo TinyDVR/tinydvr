@@ -1,24 +1,18 @@
-package org.tinydvr.service.jobs
+package org.tinydvr.jobs
 
-import org.tinydvr.config.{DatabaseConnectionInfo, Configured}
-import org.tinydvr.db.TinyDVRDB
-import org.tinydvr.schedulesdirect.api._
-import org.tinydvr.util.SchedulesDirectSupport
 import org.slf4j.LoggerFactory
+import org.tinydvr.config._
+import org.tinydvr.db.TinyDVRDB
 
 /**
  * Provides access to common resources for execution tasks.
  */
-trait BaseJob extends Configured with TinyDVRDB with SchedulesDirectSupport {
-
-  import org.tinydvr.schedulesdirect.api.Implicits._
-
-  protected def dbInfo: DatabaseConnectionInfo = config.databaseInfo
+trait BaseJob extends Configured with TinyDVRDB {
 
   //
   // All jobs should implement this method.
   //
-  protected def run(): Unit
+  protected def runInternal(): Unit
 
   /**
    * A convenience function that runs this job and:
@@ -26,10 +20,10 @@ trait BaseJob extends Configured with TinyDVRDB with SchedulesDirectSupport {
    * 2) Catches any errors
    * 3) Prints the results of (1) and (2) to the logger.
    */
-  def execute(): Unit = {
+  def run(): Unit = {
     try {
-      timed("Job %s".format(jobName)) {
-        run
+      timed(jobName) {
+        runInternal
       }
     } catch {
       case e: Exception => {
@@ -44,7 +38,6 @@ trait BaseJob extends Configured with TinyDVRDB with SchedulesDirectSupport {
 
   protected lazy val logger = LoggerFactory.getLogger(getClass)
 
-
   //
   // Useful helper functions for jobs
   //
@@ -53,15 +46,6 @@ trait BaseJob extends Configured with TinyDVRDB with SchedulesDirectSupport {
    * @return  The name of this class
    */
   protected def jobName: String = getClass.getName.split("\\.").last
-
-  /**
-   * @return  A new instance of the schedules direct client with a new API client.
-   */
-  protected def schedulesDirectApi(): SchedulesDirectAPIClient = {
-    val creds = config.schedulesDirectCredentials
-    val token = SchedulesDirectAuthenticator.getToken(creds.username, creds.password)
-    new SchedulesDirectAPIClient(token.getResult.token)
-  }
 
   /**
    * Times the provided method and prints the result to logger.info

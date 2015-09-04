@@ -1,0 +1,49 @@
+#
+# TinyDVR sample configuration.
+# Copy this file to /etc/tinydvr/tinydvr.conf and update with your needed values.
+#
+
+#
+# Schedules direct login info
+#
+
+schedules_direct = {
+	username = "username"
+	password = "password"
+}
+
+
+#
+# Database configuration
+# Tiny dvr will connect to the following database on boot.
+#
+
+db = {
+	url = "jdbc:h2:/opt/tinydvr/database;AUTO_SERVER=TRUE"
+	username = "dbuser"
+	password = "dbpassword"
+}
+
+
+#
+# Listing settings. These define how much data is downloaded from schedules direct.
+#
+
+listings = {
+	# Number of days to retain schedules and programs before erasing.
+	retain = 14
+	# Number of days of listings to fetch on each update.
+	fetch = 3
+}
+
+
+#
+# Update settings. These define how often data is downloaded form schedules direct.
+#
+
+update_frequencies = {
+	# Update the station data every this many hours
+	stations = 720 # 30 days....
+	# Update the listings every this many hours
+	listings = 24
+}

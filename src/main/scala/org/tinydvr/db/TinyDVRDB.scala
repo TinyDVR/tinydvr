@@ -2,44 +2,42 @@ package org.tinydvr.db
 
 import net.liftweb.json.Extraction._
 import net.liftweb.json._
+import org.joda.time.{LocalDate, DateTime}
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Schema
-import org.tinydvr.config.DatabaseConnectionInfo
-import org.tinydvr.schedulesdirect.api.{GetLineupResponse, LocalDateSerializer, DateTimeSerializer}
+import org.tinydvr.config.{Configured, DatabaseConnectionInfo}
+import org.tinydvr.schedulesdirect.api.{DateTimeSerializer, LocalDateSerializer}
 import org.tinydvr.util.DatabaseConnection
-import org.joda.time.DateTime
 
 object TinyDVRDB extends Schema {
 
   //
   // Tables
   //
-
-  val lineups = table[Lineup]("lineups")
   val programs = table[Program]("programs")
   val schedules = table[Schedule]("schedules")
+  val stations = table[Station]("stations")
 
   //
   // Table constraints
   //
 
-  on(lineups)(l => declare(
-    l.id is (autoIncremented),
-    l.uri is (indexed),
-    l.uri is (unique),
-    l.lineupJson is (dbType("text"))
-  ))
-
   on(programs)(p => declare(
-    p.id is (indexed),
-    p.programJson is (dbType("text"))
+    p.id is indexed,
+    p.md5 is indexed,
+    p.programTitle is indexed,
+    p.programJson is dbType("text")
   ))
 
   on(schedules)(s => declare(
-    columns(s.lineupId, s.stationId, s.programId, s.airDateTimeEpoch) are (unique),
-    columns(s.lineupId, s.airDateTimeEpoch) are (indexed),
-    columns(s.lineupId, s.stationId) are (indexed),
-    columns(s.lineupId, s.programTitle) are (indexed)
+    columns(s.stationId, s.programId, s.airDateTimeEpoch) are unique,
+    s.airDateTimeEpoch is indexed,
+    s.stationId is indexed
+  ))
+
+  on(stations)(s => declare(
+    s.id is indexed,
+    s.infoJson is dbType("text")
   ))
 
   //
@@ -62,10 +60,8 @@ object TinyDVRDB extends Schema {
   }
 }
 
-trait TinyDVRDB {
-  protected def dbInfo: DatabaseConnectionInfo
-
-  lazy val tinyDvrDb = new TinyDVRDBAPI(dbInfo)
+trait TinyDVRDB extends Configured {
+  lazy val tinyDvrDb = new TinyDVRDBAPI(staticConfig.databaseInfo)
 }
 
 class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
@@ -82,77 +78,46 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   }
 
   //
-  // Lineup Management
-  //
-
-  def getAllLineups(): List[Lineup] = {
-    run {
-      from(lineups)(l => select(l)).toList
-    }
-  }
-
-  def getLineup(uri: String): Option[Lineup] = {
-    run {
-      from(lineups)(l => {
-        where(l.uri === uri).select(l)
-      }).headOption
-    }
-  }
-
-  /**
-   * Inserts or updates the provided lineup information.
-   * @param uri     The unique uri of the lineup for schedules direct.
-   * @param lineup  The lineup data returned by schedules direct
-   * @return        The lineup id
-   */
-  def insertOrUpdateLineup(uri: String, lineup: GetLineupResponse): Long = {
-    run {
-      val existing = getLineup(uri)
-      val record = existing.getOrElse {
-        val l = new Lineup
-        l.uri = uri
-        l
-      }
-      record.lastUpdated = new DateTime
-      record.lineup = lineup
-      if (existing.isDefined) {
-        lineups.update(record)
-      } else {
-        lineups.insert(record)
-      }
-      record.id
-    }
-  }
-
-  def eraseLineup(id: Long): Unit = {
-    run {
-      lineups.deleteWhere(_.id === id)
-    }
-  }
-
-  //
   // Program Management
   //
 
   /**
-   * Inserts new programs into the data base.
+   * Inserts the provided stations. If they already exist, it is replaced by the provided one.
    */
-  def insertPrograms(ps: Iterable[Program]): Unit = {
-    run {
-      inTransaction {
-        programs.insert(ps)
+  def insertOrReplaceProgram(ps: Iterable[Program]): Unit = {
+    if (ps.nonEmpty) {
+      val existingIds = findProgramsByIds(ps.map(_.id).toSet).map(_.id).toSet
+      run {
+        inTransaction {
+          if (existingIds.nonEmpty) {
+            programs.deleteWhere(_.id in existingIds)
+          }
+          programs.insert(ps)
+        }
       }
     }
   }
 
   /**
-   * Returns all program ids currently in the database.
-   * Note that schedules direct requires applications to cache programs to avoid hammering their servers.
-   * @return   All of the program ids currently in the database
+   * Returns the programs with the md5s provided.
    */
-  def getAllProgramIds(): Set[String] = {
+  def findProgramsByIds(ids: Set[String]): List[Program] = {
     run {
-      from(programs)(p => select(p.id)).toSet
+      from(programs)(p => {
+        where(p.id in ids).select(p)
+      }).toList
+    }
+  }
+
+
+  /**
+   * Returns the programs with the md5s provided.
+   */
+  def findProgramsByMd5s(md5s: Set[String]): List[Program] = {
+    run {
+      from(programs)(p => {
+        where(p.md5 in md5s).select(p)
+      }).toList
     }
   }
 
@@ -162,27 +127,11 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
    * hammer schedules direct and they will hate you.
    * @param dt  The datetime for which programs not updated since will be deleted.
    */
-  def purgeProgramsNotSeenSince(dt: DateTime): Unit = {
+  def eraseProgramsNotSeenSince(dt: DateTime): Int = {
     val epoch = dt.getMillis
     run {
       inTransaction {
-        programs.deleteWhere(_.lastUpdatedEpoch lt epoch)
-      }
-    }
-  }
-
-  /**
-   * Sets the last updated field of the provided ids to the current system time.
-   * This should be run for cached program ids.
-   */
-  def touchPrograms(programIds: Set[String]): Unit = {
-    val epoch = System.currentTimeMillis
-    run {
-      inTransaction {
-        update(programs)(p => {
-          where(p.id in programIds).
-            set(p.lastUpdatedEpoch := epoch)
-        })
+        programs.deleteWhere(_.lastUpdated lt epoch)
       }
     }
   }
@@ -191,21 +140,24 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   // Schedules Management
   //
 
+  def findAllSchedules(): List[Schedule] = {
+    run {
+      from(schedules)(s => select(s)).toList
+    }
+  }
+
   /**
    * Deletes schedules for programs that air before the provided datetime.
-   * Note: give youself some wiggle room here: A program may start at 11pm on Monday
+   * Note: give yourself some wiggle room here: A program may start at 11pm on Monday
    * and not end until 3am on Tuesday.
    * Deletion is done based on airdatetime since it is indexed in the database.
    * @return  The number of rows erased.
    */
-  def eraseSchedulesAiringBefore(lineupId: Long, dateTime: DateTime): Int = {
+  def eraseSchedulesAiringBefore(dateTime: DateTime): Int = {
     val epoch = dateTime.getMillis
     run {
       inTransaction {
-        schedules.deleteWhere(s => {
-          (s.lineupId === lineupId) and
-            (s.airDateTimeEpoch lt epoch)
-        })
+        schedules.deleteWhere(_.airDateTimeEpoch lt epoch)
       }
     }
   }
@@ -217,14 +169,13 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
    * Similarly, a program that ends after endTime but starts in the range will be returned.
    * This query should be relatively fast for short times (a few hours) or a single station.
    */
-  def findScheduledPrograms(lineupId: Long, start: DateTime, end: DateTime): List[(Schedule, Program)] = {
+  def findScheduledPrograms(start: DateTime, end: DateTime): List[(Schedule, Program)] = {
     val startEpoch = start.getMillis
     val endEpoch = end.getMillis
     run {
       join(schedules, programs)((s, p) => {
         where(
-          (s.lineupId === lineupId) and
-            (s.airDateTimeEpoch lte endEpoch) and
+          (s.airDateTimeEpoch lte endEpoch) and
             ((s.airDateTimeEpoch + s.durationInSeconds * 1000L) gte startEpoch)
         ).select((s, p)).on(s.programId === p.id)
       }).toList
@@ -234,35 +185,45 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   /**
    * Queries for listings containing the provided text.
    */
-  def findScheduledPrograms(lineupId: Long, query: String): List[(Schedule, Program)] = {
+  def findScheduledPrograms(query: String): List[(Schedule, Program)] = {
     run {
       join(schedules, programs)((s, p) => {
         where(
-          (s.lineupId === lineupId) and
-            (s.programTitle like query)
+          (p.programTitle like query)
         ).select((s, p)).on(s.programId === p.id)
       }).toList
     }
   }
 
-  /**
-   * Queries for listings for the provided station id.
-   */
-  def findScheduledProgramsForStation(lineupId: Long, stationId: String): List[(Schedule, Program)] = {
-    run {
-      join(schedules, programs)((s, p) => {
-        where(
-          (s.lineupId === lineupId) and
-            (s.programId === stationId)
-        ).select((s, p)).on(s.programId === p.id)
-      }).toList
-    }
-  }
-
-  def insertSchedules(s: Iterable[Schedule]): Unit = {
+  def replaceSchedulesForDay(day: LocalDate, ss: Iterable[Schedule]): Unit = {
+    val start = day.toDateTimeAtStartOfDay.getMillis
+    val end = day.toDateTimeAtStartOfDay.plusDays(1).getMillis
+    assert(ss.forall(s => (s.airDateTimeEpoch < end) && (s.airDateTimeEpoch >= start)))
     run {
       inTransaction {
-        schedules.insert(s)
+        schedules.deleteWhere(s => {
+          (s.airDateTimeEpoch lt end) and (s.airDateTimeEpoch gte start)
+        })
+        schedules.insert(ss)
+      }
+    }
+  }
+
+  //
+  // Stations Management
+  //
+
+  def findAllStations(): List[Station] = {
+    run {
+      from(stations)(s => select(s)).toList
+    }
+  }
+
+  def replaceAllStations(ss: Iterable[Station]): Unit = {
+    run {
+      inTransaction {
+        stations.deleteWhere(_ => 1 === 1)
+        stations.insert(ss)
       }
     }
   }

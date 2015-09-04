@@ -1,10 +1,11 @@
-package org.tinydvr.service.jobs
+package org.tinydvr.jobs
 
 import org.h2.jdbc.JdbcSQLException
+import org.tinydvr.config.StaticConfiguration
 
-case class CheckDatabaseCreatedJob() extends BaseJob {
+case class CheckDatabaseCreatedJob(val staticConfig: StaticConfiguration) extends BaseJob {
 
-  def run(): Unit = {
+  def runInternal(): Unit = {
     logger.info("Creating database tables.")
     try {
       tinyDvrDb.create

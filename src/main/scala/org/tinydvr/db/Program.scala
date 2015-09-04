@@ -3,18 +3,22 @@ package org.tinydvr.db
 import org.squeryl.KeyedEntity
 import org.squeryl.annotations._
 import org.joda.time.DateTime
-import org.tinydvr.service.api.{Program => ProgramDTO}
+import org.tinydvr.schedulesdirect.api.ProgramResponse
 
 class Program extends KeyedEntity[String] {
 
-  @Column(name = "id")
+  @Column(name = "id")  // the program id provided by schedules direct
   var id: String = _
 
-  //
-  // The epoch for the last time that this lineup was updated
-  //
-  @Column(name = "last_updated_epoch")
-  var lastUpdatedEpoch: Long = System.currentTimeMillis
+  @Column(name = "md5") // program md5 provided by schedules direct
+  var md5: String = _
+
+  @Column(name = "last_updated")
+  var lastUpdated: Long = _
+
+  // The program title is stored here for searching
+  @Column(name = "program_title", length = 255)
+  var programTitle: String = _
 
   //
   // The json returned from schedules direct.
@@ -26,17 +30,9 @@ class Program extends KeyedEntity[String] {
   // Convenience functions for accessing the fields
   //
 
-  def lastUpdated: DateTime = {
-    new DateTime(lastUpdatedEpoch)
-  }
+  def program: ProgramResponse = TinyDVRDB.fromJson[ProgramResponse](programJson)
 
-  def lastUpdated_=(dt: DateTime): Unit = {
-    lastUpdatedEpoch = dt.getMillis
-  }
-
-  def program: ProgramDTO = TinyDVRDB.fromJson[ProgramDTO](programJson)
-
-  def lineup_=(r: ProgramDTO): Unit = {
+  def program_=(r: ProgramResponse): Unit = {
     programJson = TinyDVRDB.toJson(r)
   }
 

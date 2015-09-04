@@ -1,9 +1,9 @@
-package org.tinydvr.service.servlets
+package org.tinydvr.service
 
+import net.liftweb.json.Extraction.decompose
+import net.liftweb.json._
 import org.scalatra._
 import org.slf4j.LoggerFactory
-import net.liftweb.json._
-import net.liftweb.json.Extraction.decompose
 
 /**
  * Adds some useful functionality on top of the ScalatraServlet get and post functions

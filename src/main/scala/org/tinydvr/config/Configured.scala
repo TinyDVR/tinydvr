@@ -1,8 +1,9 @@
 package org.tinydvr.config
 
 trait Configured {
+  protected val staticConfig: StaticConfiguration
+}
 
-  // TODO: make sure this only loads once per jvm instance.
-  protected lazy val config = ConfigurationLoader.load()
-
+trait LiveConfiguration extends Configured {
+  override protected val staticConfig: StaticConfiguration = StaticConfigurationSingleton.fromProperties
 }
