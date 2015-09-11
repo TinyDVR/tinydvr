@@ -5,6 +5,6 @@ import org.tinydvr.db._
 import org.tinydvr.jobs._
 import org.tinydvr.util._
 
-val tinydvr = new Object with LiveConfiguration with SchedulesDirectAPI with TinyDVRDB {
+val tinydvr = new Object with LiveConfiguration with SchedulesDirectAPI with TinyDVRDB with VariableReplacer {
   def getConfiguration: StaticConfiguration = staticConfig
 }

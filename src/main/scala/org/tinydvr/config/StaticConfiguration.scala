@@ -12,5 +12,9 @@ case class StaticConfiguration(
   // listings configuration
   listings: SchedulingListingConfiguration,
   // update freuquencies
-  updateFrequencies: SchedulingUpdateFrequenciesConfiguration
+  updateFrequencies: SchedulingUpdateFrequenciesConfiguration,
+  // the recording configuration
+  recordings: RecordingConfig,
+  // the tuner configuration
+  tuner: TunerConfig
 )

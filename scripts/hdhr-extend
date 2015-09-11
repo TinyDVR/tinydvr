@@ -1,0 +1,63 @@
+#!/bin/bash
+# A script that records programs from an hdhomerun extend.
+# It simply calls curl.
+#
+
+# set -e
+SDIR=`dirname $0`
+SNAME=`basename $0`
+
+function show_usage {
+        echo "Usage: `basename $0` [Options] -c channel -t time -o output"
+	echo -e "\t-c channel   The channel number to pass to the tuner."
+	echo -e "\t-t time      The duration to record in seconds (i.e., 60, etc)"
+	echo -e "\t-o output    The output file name."
+	echo "Optional arguments:"
+	echo -e "\t-p profile   Transcode profile (defaults to the tuner's default)"
+	echo -e "\t-n tuner     Tuner (default auto)"
+	echo -e "\t-d           The device's ip. (default: first returned by hdhomerun_config"
+        exit 1
+}
+
+ofile=""
+channel=""
+dur=""
+transcode=""
+tuner="auto"
+ip=""
+
+while getopts "h?c:t:o:p:n:d:" opt; do
+    case "$opt" in
+    h|\?)
+	show_usage
+        ;;
+    c)  channel=$OPTARG
+        ;;
+    t)  dur=$OPTARG
+        ;;
+    o)  ofile=$OPTARG
+        ;;
+    p)  transcode="&transcode=$OPTARG"
+        ;;
+    n)  tuner="tuner$OPTARG"
+        ;;
+    d) ip=$OPTARG
+        ;;
+    esac
+done
+
+if [[ -z "$ofile" || -z "$dur" || -z "$channel" ]]
+then
+	show_usage
+fi
+
+if [ -z "$ip" ] ; then
+	ip=`hdhomerun_config discover | awk '{print $6}'`
+fi
+
+# create the url
+url="http://$ip:5004/$tuner/v$channel?duration=$dur$transcode"
+
+# record the file
+curl -s "$url" > "$ofile" 
+

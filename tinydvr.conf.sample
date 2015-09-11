@@ -47,3 +47,35 @@ update_frequencies = {
 	# Update the listings every this many hours
 	listings = 24
 }
+
+#
+# Recordings Settings
+# The tuner arguments, file name, and recording directory strings can use special 
+# variables that are replaced depending on the program being recorded. They 
+# are listed below. If the particular value does not exist for the program, a blank string is used.
+#
+# %callsign  -- The callsign of the station
+# %atscMajor -- The station's major tuning frequency
+# %atscMinor -- The station's minor tuning frequency
+# %title     -- The title of the program.
+# %duration  -- The duration in seconds to record for.
+# %season    -- The season number of the show, padded with 0s up to two digits.
+# %episode   -- The episode number of the show, padded with 0s up to two digits.
+# %date      -- The date the recording was made in YYYY-MM-DD format.
+#
+
+recordings = {
+	directory = "" # directory where the recordings get stored
+	file_name = "" # A string indicating how the file is named.
+}
+
+tuner = {
+	executable = "scripts/hdhr-extend" # The full path to the executable used to record your program.
+	# All of the arguments necessary to pass to the executable. 
+	# Note: the final argument will always be the output file name.
+	arguments = [
+		"-c", "%atscMajor.%atscMinor",
+		"-t", "%duration",
+		"-o"
+	]
+}

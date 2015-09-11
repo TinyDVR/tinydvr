@@ -33,8 +33,12 @@ object TinyDVRDB extends Schema {
   on(recordings)(r => declare(
     r.id is autoIncremented,
     r.id is indexed,
+    r.status is indexed,
     r.startDateTimeEpoch is indexed,
-    r.programTitle is indexed
+    r.programTitle is indexed,
+    r.programJson is dbType("text"),
+    r.error is dbType("text"),
+    r.fileName is dbType("text")
   ))
 
   on(schedules)(s => declare(
@@ -117,6 +121,12 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
     }
   }
 
+  def findProgram(id: String): Option[Program] = {
+    run {
+      programs.lookup(id)
+    }
+  }
+
 
   /**
    * Returns the programs with the md5s provided.
@@ -141,6 +151,45 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
       inTransaction {
         programs.deleteWhere(_.lastUpdated lt epoch)
       }
+    }
+  }
+
+  //
+  // Recordings Management
+  //
+
+  /**
+   * Indicates that the specific recording has started.
+   * Two things happen here:
+   *  1) The status is changed to 'in progress'
+   *  2) The output file is populated.
+   */
+  def beginRecording(recordingId: Long, fileName: String): Unit = {
+    run {
+      update(recordings)(r => {
+        where(r.id === recordingId).
+          set(r.fileName := Some(fileName),
+            r.status := RecordingStatus.InProgress)
+      })
+    }
+  }
+
+  def setRecordingSuccessful(recordingId: Long): Unit = {
+    run {
+      update(recordings)(r => {
+        where(r.id === recordingId).
+          set(r.status := RecordingStatus.Successful)
+      })
+    }
+  }
+
+  def setRecordingFailed(recordingId: Long, error: Option[String]): Unit = {
+    run {
+      update(recordings)(r => {
+        where(r.id === recordingId).
+          set(r.status := RecordingStatus.Failed,
+            r.error := error)
+      })
     }
   }
 
@@ -220,6 +269,13 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   //
   // Stations Management
   //
+
+  def findStation(id: String): Option[Station] = {
+    run {
+      stations.lookup(id)
+    }
+  }
+
 
   def findAllStations(): List[Station] = {
     run {

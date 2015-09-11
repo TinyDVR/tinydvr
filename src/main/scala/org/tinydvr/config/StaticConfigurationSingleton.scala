@@ -2,6 +2,7 @@ package org.tinydvr.config
 
 import com.typesafe.config.ConfigFactory
 import java.io.File
+import scala.collection.JavaConverters._
 
 object StaticConfigurationSingleton {
 
@@ -53,11 +54,29 @@ object StaticConfigurationSingleton {
       )
     }
 
+    val recordingConfig = {
+      val recording = factory.getConfig("recordings")
+      RecordingConfig(
+        recording.getString("directory"),
+        recording.getString("file_name")
+      )
+    }
+
+    val tuner = {
+      val tuner = factory.getConfig("tuner")
+      TunerConfig(
+        tuner.getString("executable"),
+        tuner.getStringList("arguments").asScala.toList
+      )
+    }
+
     StaticConfiguration(
       databaseInfo,
       schedulesDirectCredentials,
       listings,
-      updateFrequencies
+      updateFrequencies,
+      recordingConfig,
+      tuner
     )
   }
 

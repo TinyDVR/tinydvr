@@ -19,6 +19,8 @@ case class DatabaseConnectionInfo(url: String, username: String, password: Strin
   }
 }
 
+case class RecordingConfig(directory: String, fileName: String)
 case class SchedulesDirectCredentials(username: String, password: String)
 case class SchedulingListingConfiguration(retain: Int, fetch: Int)
 case class SchedulingUpdateFrequenciesConfiguration(stations: Int, listings: Int)
+case class TunerConfig(executable: String, arguments: List[String])

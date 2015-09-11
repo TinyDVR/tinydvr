@@ -5,7 +5,11 @@ import org.squeryl.KeyedEntity
 import org.squeryl.annotations._
 import org.tinydvr.schedulesdirect.api.ProgramResponse
 
-class Recording extends KeyedEntity[Long]{
+class Recording(
+  // in constructor since squeryl gets confused about indexes enums otherwise.
+  @Column(name = "status")
+  var status: RecordingStatus.Value = RecordingStatus.Scheduled
+) extends KeyedEntity[Long]{
 
   @Column(name = "id")  // auto-incremented
   var id: Long = _
@@ -13,11 +17,11 @@ class Recording extends KeyedEntity[Long]{
   @Column(name = "station_id")
   var stationId: String = _
 
-  @Column(name = "status")
-  var status: RecordingStatus.Value = RecordingStatus.Scheduled
-
   @Column(name = "file_name")
   var fileName: Option[String] = None // where the recording is located. is set when recording enters 'in progress' status
+
+  @Column(name = "error") // if the recording failed, indicate why.
+  var error: Option[String] = None
 
   //
   // Scheduling info for the recording
@@ -45,7 +49,8 @@ class Recording extends KeyedEntity[Long]{
 
   //
   // A copy of the full program information. It is duplicated from the
-  // programs table since recordings may live on forever.
+  // programs table since recordings may live on forever, and the programs table
+  // is occasionally purged.
   //
   @Column(name = "program_json")
   var programJson: String = _
