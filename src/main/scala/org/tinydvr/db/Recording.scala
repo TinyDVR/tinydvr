@@ -17,7 +17,7 @@ class Recording extends KeyedEntity[Long]{
   var status: RecordingStatus.Value = RecordingStatus.Scheduled
 
   @Column(name = "file_name")
-  var fileName: Option[String] = None // where the recording is located
+  var fileName: Option[String] = None // where the recording is located. is set when recording enters 'in progress' status
 
   //
   // Scheduling info for the recording

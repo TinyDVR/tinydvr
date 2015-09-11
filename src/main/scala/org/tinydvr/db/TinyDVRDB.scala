@@ -15,6 +15,7 @@ object TinyDVRDB extends Schema {
   // Tables
   //
   val programs = table[Program]("programs")
+  val recordings = table[Recording]("recordings")
   val schedules = table[Schedule]("schedules")
   val stations = table[Station]("stations")
 
@@ -27,6 +28,13 @@ object TinyDVRDB extends Schema {
     p.md5 is indexed,
     p.programTitle is indexed,
     p.programJson is dbType("text")
+  ))
+
+  on(recordings)(r => declare(
+    r.id is autoIncremented,
+    r.id is indexed,
+    r.startDateTimeEpoch is indexed,
+    r.programTitle is indexed
   ))
 
   on(schedules)(s => declare(
