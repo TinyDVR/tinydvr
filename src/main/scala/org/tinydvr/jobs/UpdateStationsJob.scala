@@ -1,6 +1,6 @@
 package org.tinydvr.jobs
 
-import org.joda.time.LocalDate
+import org.joda.time.DateTime
 import org.tinydvr.config.StaticConfiguration
 import org.tinydvr.db._
 import org.tinydvr.util.SchedulesDirectAPI

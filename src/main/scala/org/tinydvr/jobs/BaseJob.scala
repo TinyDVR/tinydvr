@@ -22,22 +22,15 @@ trait BaseJob extends Configured with TinyDVRDB {
    * 4) Records when the job was started to the database.
    */
   def run(): Unit = {
-    val log = new JobLog
-    log.name = jobName
-    log.timestamp = System.currentTimeMillis
     try {
       timed(jobName) {
         runInternal
       }
-      log.status = JobStatus.Successful
     } catch {
       case e: Exception => {
         logger.error("Could not execute %s, caught".format(jobName), e)
-        log.status = JobStatus.Failed
       }
     }
-    tinyDvrDb.deleteOldLogsForJob(jobName)
-    tinyDvrDb.insertJobLog(log)
   }
 
   //

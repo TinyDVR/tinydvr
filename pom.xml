@@ -14,6 +14,7 @@
         <encoding>UTF-8</encoding>
 
         <!-- Plugin Versions-->
+        <akka.version>2.3.13</akka.version>
         <config.version>0.4.0</config.version>
         <h2-connector.version>1.3.176</h2-connector.version>
         <httpclient.version>4.3.2</httpclient.version>
@@ -50,6 +51,16 @@
 
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_${scala.majorVersion}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit_${scala.majorVersion}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

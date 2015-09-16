@@ -14,7 +14,7 @@ object TinyDVRDB extends Schema {
   //
   // Tables
   //
-  val jobLogs = table[JobLog]("job_logs")
+  val configuration = table[Configuration]("config")
   val programs = table[Program]("programs")
   val recordings = table[Recording]("recordings")
   val schedules = table[Schedule]("schedules")
@@ -24,8 +24,9 @@ object TinyDVRDB extends Schema {
   // Table constraints
   //
 
-  on(jobLogs)(p => declare(
-    p.name is indexed
+  on(configuration)(c => declare(
+    c.key is indexed,
+    c.value is dbType("text")
   ))
 
   on(programs)(p => declare(
@@ -86,35 +87,33 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   import TinyDVRDB._
 
   //
-  // Job record keeping
-  //
-
-  def deleteOldLogsForJob(name: String): Unit = {
-    run {
-      jobLogs.deleteWhere(_.name === name)
-    }
-  }
-
-  def findLastRunTimestamp(name: String): Option[DateTime] = {
-    run {
-      from(jobLogs)(l => {
-        where(l.name === name).select(l.timestamp)
-      }).headOption.map(ts => new DateTime(ts))
-    }
-  }
-
-  def insertJobLog(log: JobLog): Unit = {
-    run {
-      jobLogs.insert(log)
-    }
-  }
-
-  //
   // Database management
   //
   def create() : Unit = {
     run {
       TinyDVRDB.create
+    }
+  }
+
+  //
+  // Configuration Management
+  //
+
+  def findConfiguration(key: String): Option[String] = {
+    run {
+      configuration.lookup(key).map(_.value)
+    }
+  }
+
+  def insertOrUpdateConfiguration(key: String, value: String): Unit = {
+    run {
+      val row = configuration.lookup(key).getOrElse {
+        val c = new Configuration
+        c.key = key
+        c
+      }
+      row.value = value
+      configuration.insertOrUpdate(row)
     }
   }
 
