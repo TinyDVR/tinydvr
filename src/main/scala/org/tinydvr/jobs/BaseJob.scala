@@ -2,7 +2,7 @@ package org.tinydvr.jobs
 
 import org.slf4j.LoggerFactory
 import org.tinydvr.config._
-import org.tinydvr.db.TinyDVRDB
+import org.tinydvr.db._
 
 /**
  * Provides access to common resources for execution tasks.
@@ -19,17 +19,25 @@ trait BaseJob extends Configured with TinyDVRDB {
    * 1) Times the execution
    * 2) Catches any errors
    * 3) Prints the results of (1) and (2) to the logger.
+   * 4) Records when the job was started to the database.
    */
   def run(): Unit = {
+    val log = new JobLog
+    log.name = jobName
+    log.timestamp = System.currentTimeMillis
     try {
       timed(jobName) {
         runInternal
       }
+      log.status = JobStatus.Successful
     } catch {
       case e: Exception => {
         logger.error("Could not execute %s, caught".format(jobName), e)
+        log.status = JobStatus.Failed
       }
     }
+    tinyDvrDb.deleteOldLogsForJob(jobName)
+    tinyDvrDb.insertJobLog(log)
   }
 
   //

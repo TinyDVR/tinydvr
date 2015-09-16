@@ -14,6 +14,7 @@ object TinyDVRDB extends Schema {
   //
   // Tables
   //
+  val jobLogs = table[JobLog]("job_logs")
   val programs = table[Program]("programs")
   val recordings = table[Recording]("recordings")
   val schedules = table[Schedule]("schedules")
@@ -22,6 +23,10 @@ object TinyDVRDB extends Schema {
   //
   // Table constraints
   //
+
+  on(jobLogs)(p => declare(
+    p.name is indexed
+  ))
 
   on(programs)(p => declare(
     p.id is indexed,
@@ -79,6 +84,30 @@ trait TinyDVRDB extends Configured {
 class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
 
   import TinyDVRDB._
+
+  //
+  // Job record keeping
+  //
+
+  def deleteOldLogsForJob(name: String): Unit = {
+    run {
+      jobLogs.deleteWhere(_.name === name)
+    }
+  }
+
+  def findLastRunTimestamp(name: String): Option[DateTime] = {
+    run {
+      from(jobLogs)(l => {
+        where(l.name === name).select(l.timestamp)
+      }).headOption.map(ts => new DateTime(ts))
+    }
+  }
+
+  def insertJobLog(log: JobLog): Unit = {
+    run {
+      jobLogs.insert(log)
+    }
+  }
 
   //
   // Database management
