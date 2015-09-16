@@ -42,5 +42,6 @@ case class UpdateProgramsJob(val staticConfig: StaticConfiguration) extends Base
     logger.info(s"Erasing programs not seen since ${purgeDate}")
     val numDeleted = tinyDvrDb.eraseProgramsNotSeenSince(purgeDate)
     logger.info(s"Erased ${numDeleted} programs.")
+    dynamicConfig.lastListingsUpdate = new DateTime
   }
 }

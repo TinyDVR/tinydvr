@@ -40,5 +40,6 @@ case class UpdateStationsJob(val staticConfig: StaticConfiguration) extends Base
     }
     logger.info(s"Updating ${stations.size} stations for lineup ${lineup.name}")
     tinyDvrDb.replaceAllStations(stations)
+    dynamicConfig.lastStationUpdate = new DateTime
   }
 }

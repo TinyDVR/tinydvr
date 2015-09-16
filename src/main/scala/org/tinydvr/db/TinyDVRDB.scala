@@ -107,13 +107,17 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
 
   def insertOrUpdateConfiguration(key: String, value: String): Unit = {
     run {
-      val row = configuration.lookup(key).getOrElse {
+      if (configuration.lookup(key).isDefined) {
+        update(configuration)(c => {
+          where(c.key === key).
+            set(c.value := value)
+        })
+      } else {
         val c = new Configuration
         c.key = key
-        c
+        c.value = value
+        configuration.insert(c)
       }
-      row.value = value
-      configuration.insertOrUpdate(row)
     }
   }
 
