@@ -1,5 +1,6 @@
 package org.tinydvr.jobs
 
+import java.io.File
 import org.tinydvr.config.StaticConfiguration
 import org.tinydvr.db.Recording
 import org.tinydvr.util.VariableReplacer
@@ -21,7 +22,10 @@ case class RecordJob(recording: Recording, val staticConfig: StaticConfiguration
       // replace any variables in the configuration
       val strings = staticConfig.recordings.directory :: staticConfig.recordings.fileName :: staticConfig.tuner.arguments
       val (arguments, outputFile) = variableReplacer.replace(strings, station, program, recording) match {
-        case path :: filename :: args => (args, path + "/" + filename)
+        case path :: filename :: args => {
+          (new File(path)).mkdirs
+          (args, path + "/" + filename)
+        }
       }
 
       // indicate that the recording has begin

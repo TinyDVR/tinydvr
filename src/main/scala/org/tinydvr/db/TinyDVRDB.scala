@@ -190,6 +190,31 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   // Recordings Management
   //
 
+  def insertRecording(r: Recording): Long = {
+    run {
+      recordings.insert(r)
+    }
+    r.id
+  }
+
+  def findRecordingById(id: Long): Option[Recording] = {
+    run {
+      recordings.lookup(id)
+    }
+  }
+
+  def findRecording(stationId: String, programId: String, startDateTime: DateTime): Option[Recording] = {
+    run {
+      from(recordings)(r => {
+        where(
+          (r.stationId === stationId) and
+            (r.programId === programId) and
+            (r.startDateTimeEpoch === startDateTime.getMillis)
+        ).select(r)
+      }).toList.headOption
+    }
+  }
+
   def findOverdueRecordings(): List[Recording] = {
     val now = System.currentTimeMillis
     run {
@@ -244,6 +269,12 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   def findAllSchedules(): List[Schedule] = {
     run {
       from(schedules)(s => select(s)).toList
+    }
+  }
+
+  def findSchedule(stationId: String, programId: String, airDateTime: DateTime): Option[Schedule] = {
+    run {
+      schedules.lookup(compositeKey(stationId, programId, airDateTime.getMillis))
     }
   }
 

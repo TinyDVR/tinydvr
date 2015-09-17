@@ -1,5 +1,6 @@
 package org.tinydvr.util
 
+import org.joda.time.LocalDate
 import org.tinydvr.db._
 
 trait VariableReplacer {
@@ -42,7 +43,8 @@ object VariableReplacer {
   private def getVaraiblesMap(s: Station, p: Program, r: Recording): Map[String, String] = {
     stationVariablesMap.mapValues(_.apply(s)) ++
       programVariablesMap.mapValues(_.apply(p)) ++
-      recordingsVariablesMap.mapValues(_.apply(r))
+      recordingsVariablesMap.mapValues(_.apply(r)) ++
+      Map("%date" -> (new LocalDate).toString)
   }
 
 }
