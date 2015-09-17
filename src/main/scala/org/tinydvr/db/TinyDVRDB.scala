@@ -2,7 +2,7 @@ package org.tinydvr.db
 
 import net.liftweb.json.Extraction._
 import net.liftweb.json._
-import org.joda.time.{LocalDate, DateTime}
+import org.joda.time.{DateTime, LocalDate}
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Schema
 import org.tinydvr.config.{Configured, DatabaseConnectionInfo}
@@ -84,7 +84,7 @@ trait TinyDVRDB extends Configured {
 
 class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
 
-  import TinyDVRDB._
+  import org.tinydvr.db.TinyDVRDB._
 
   //
   // Database management
@@ -189,6 +189,18 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   //
   // Recordings Management
   //
+
+  def findOverdueRecordings(): List[Recording] = {
+    val now = System.currentTimeMillis
+    run {
+      from(recordings)(r => {
+        where(
+          (r.startDateTimeEpoch lte now) and
+            (r.status === RecordingStatus.Scheduled)
+        ).select(r)
+      }).toList
+    }
+  }
 
   /**
    * Indicates that the specific recording has started.

@@ -1,11 +1,14 @@
 package org.tinydvr.jobs
 
-import org.joda.time.{Period, DateTime}
+import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import org.tinydvr.config.{Configured, StaticConfiguration}
+import org.tinydvr.db.{TinyDVRDB, Recording}
 import org.tinydvr.util.Singletons
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.blocking
 
 object JobScheduler {
   private var exector = Option.empty[JobExecutor]
@@ -24,12 +27,16 @@ object JobScheduler {
       // schedule update check for listings
       scheduler.schedule(1 minutes, 1 hours)(je.checkListingUpdate)
 
+      // check to see if we have any recordings to execute
+      scheduler.schedule(Duration.Zero, 333 milliseconds)(je.recordOverduePrograms)
+
       exector = Some(je)
     }
   }
 }
 
-private class JobExecutor(val staticConfig: StaticConfiguration) extends Configured {
+private class JobExecutor(val staticConfig: StaticConfiguration) extends Configured with TinyDVRDB {
+  private val futures = scala.collection.mutable.HashSet[Future[Unit]]()
   private val logger = LoggerFactory.getLogger(getClass)
 
   def checkStationsUpdate(): Unit = {
@@ -44,6 +51,22 @@ private class JobExecutor(val staticConfig: StaticConfiguration) extends Configu
       logger.info("Updating Listings....")
       UpdateSchedulesJob(staticConfig).run()
       UpdateProgramsJob(staticConfig).run()
+    }
+  }
+
+  def recordOverduePrograms(): Unit = {
+    tinyDvrDb.findOverdueRecordings.foreach(recordProgram)
+  }
+
+  private def recordProgram(recording: Recording): Unit = {
+    val future = Future {
+      blocking {
+        RecordJob(recording, staticConfig).run()
+      }
+    }
+    futures += future
+    future.onComplete {
+      case _ => futures -= future
     }
   }
 
