@@ -32,7 +32,7 @@ object TinyDVRDB extends Schema {
   on(programs)(p => declare(
     p.id is indexed,
     p.md5 is indexed,
-    p.programTitle is indexed,
+    p.searchableTitle is indexed,
     p.programJson is dbType("text")
   ))
 
@@ -41,7 +41,7 @@ object TinyDVRDB extends Schema {
     r.id is indexed,
     r.status is indexed,
     r.startDateTimeEpoch is indexed,
-    r.programTitle is indexed,
+    r.searchableTitle is indexed,
     r.programJson is dbType("text"),
     r.error is dbType("text"),
     r.fileName is dbType("text")
@@ -317,11 +317,12 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   /**
    * Queries for listings containing the provided text.
    */
-  def findScheduledPrograms(query: String): List[(Schedule, Program)] = {
+  def findScheduledPrograms(searchQuery: String): List[(Schedule, Program)] = {
+    val query = s"%$searchQuery%".toLowerCase
     run {
       join(schedules, programs)((s, p) => {
         where(
-          (p.programTitle like query)
+          (p.searchableTitle like query)
         ).select((s, p)).on(s.programId === p.id)
       }).toList
     }

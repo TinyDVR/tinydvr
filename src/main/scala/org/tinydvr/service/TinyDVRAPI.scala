@@ -13,19 +13,19 @@ class TinyDVRAPIImpl(val staticConfig: StaticConfiguration) extends TinyDVRDB  {
   /**
    * Schedules a program to be recorded.
    */
-  def scheduleRecording(stationId: String, programId: String, startDateTime: DateTime): Long = {
+  def scheduleRecording(stationId: String, programId: String, airDateTime: DateTime): Long = {
     // get the database objects
     val (schedule, programDTO) =
       (for {
-        schedule <- tinyDvrDb.findSchedule(stationId, programId, startDateTime)
+        schedule <- tinyDvrDb.findSchedule(stationId, programId, airDateTime)
         program <- tinyDvrDb.findProgram(programId)
       } yield (schedule, program)).getOrElse {
-        throw new IllegalArgumentException(s"No scheduled programs found for $stationId, $programId, $startDateTime")
+        throw new IllegalArgumentException(s"No scheduled programs found for $stationId, $programId, $airDateTime")
       }
 
     // ensure this isn't already scheduled to record
-    tinyDvrDb.findRecording(stationId, programId, startDateTime).foreach(r => {
-      throw new IllegalArgumentException(s"Recording ${r.id} already scheduled for station $stationId and program $programId at $startDateTime")
+    tinyDvrDb.findRecording(stationId, programId, airDateTime).foreach(r => {
+      throw new IllegalArgumentException(s"Recording ${r.id} already scheduled for station $stationId and program $programId at $airDateTime")
     })
 
     // create the recording
@@ -33,7 +33,7 @@ class TinyDVRAPIImpl(val staticConfig: StaticConfiguration) extends TinyDVRDB  {
     r.durationInSeconds = schedule.durationInSeconds
     r.program = programDTO.program
     r.programId = programId
-    r.programTitle = programDTO.programTitle
+    r.searchableTitle = programDTO.searchableTitle
     r.stationId = stationId
     r.startDateTime = schedule.airDateTime
 

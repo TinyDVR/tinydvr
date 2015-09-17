@@ -17,8 +17,8 @@ class Program extends KeyedEntity[String] {
   var lastUpdated: Long = _
 
   // The program title is stored here for searching
-  @Column(name = "program_title", length = 255)
-  var programTitle: String = _
+  @Column(name = "searchable_title", length = 255)
+  var searchableTitle: String = _
 
   //
   // The json returned from schedules direct.
@@ -35,5 +35,4 @@ class Program extends KeyedEntity[String] {
   def program_=(r: ProgramResponse): Unit = {
     programJson = TinyDVRDB.toJson(r)
   }
-
 }

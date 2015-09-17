@@ -44,8 +44,8 @@ class Recording(
   var programId: String = _
 
   // The program title is stored here for searching and grouping
-  @Column(name = "program_title", length = 255)
-  var programTitle: String = _
+  @Column(name = "searchable_title", length = 255)
+  var searchableTitle: String = _
 
   //
   // A copy of the full program information. It is duplicated from the
@@ -70,4 +70,6 @@ class Recording(
   def startDateTime_=(dt: DateTime): Unit = {
     startDateTimeEpoch = dt.getMillis
   }
+
+  def title: String = program.titles.head.title120
 }

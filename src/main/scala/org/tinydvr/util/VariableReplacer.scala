@@ -36,7 +36,7 @@ object VariableReplacer {
   )
 
   private val recordingsVariablesMap = Map(
-    "%title" -> ((r: Recording) => r.programTitle),
+    "%title" -> ((r: Recording) => r.searchableTitle),
     "%duration" -> ((r: Recording) => r.durationInSeconds.toString)
   )
 

@@ -30,7 +30,7 @@ case class UpdateProgramsJob(val staticConfig: StaticConfiguration) extends Base
       p.id = program.programID
       p.lastUpdated = now
       p.md5 = program.md5
-      p.programTitle = program.titles.head.title120
+      p.searchableTitle = program.titles.head.title120.toLowerCase
       p.program = program
       p
     })
