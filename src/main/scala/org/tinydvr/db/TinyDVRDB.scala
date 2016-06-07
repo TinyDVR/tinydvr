@@ -215,6 +215,28 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
     }
   }
 
+  def findRecordingsBetween(start: DateTime, end: DateTime): List[Recording] = {
+    run {
+      from(recordings)(r => {
+        where((r.startDateTimeEpoch gte start.getMillis) and (r.startDateTimeEpoch lt end.getMillis)).
+          select(r)
+      }).toList
+    }
+  }
+
+  def findRecordings(searchQuery: String, afterDateTime: Option[DateTime]): List[Recording] = {
+    val query = s"%$searchQuery%".toLowerCase
+    run {
+      from(recordings)(r => {
+        where(
+          (r.searchableTitle like query) and
+            (r.startDateTimeEpoch gte afterDateTime.map(_.getMillis).?)
+        ).select(r)
+      }).toList
+    }
+  }
+
+
   def findOverdueRecordings(): List[Recording] = {
     val now = System.currentTimeMillis
     run {
@@ -317,12 +339,13 @@ class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
   /**
    * Queries for listings containing the provided text.
    */
-  def findScheduledPrograms(searchQuery: String): List[(Schedule, Program)] = {
+  def findScheduledPrograms(searchQuery: String, afterDateTime: Option[DateTime]): List[(Schedule, Program)] = {
     val query = s"%$searchQuery%".toLowerCase
     run {
       join(schedules, programs)((s, p) => {
         where(
-          (p.searchableTitle like query)
+          (p.searchableTitle like query) and
+            (s.airDateTimeEpoch gte afterDateTime.map(_.getMillis).?)
         ).select((s, p)).on(s.programId === p.id)
       }).toList
     }
