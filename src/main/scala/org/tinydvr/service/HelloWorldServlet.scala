@@ -1,8 +1,6 @@
 package org.tinydvr.service
 
-import org.tinydvr.config.StaticConfiguration
-
-class HelloWorldServlet(config: StaticConfiguration) extends JsonAPIServlet {
+class HelloWorldServlet() extends JsonAPIServlet {
 
   get("/") {
     HelloWorldResponse("Yay!")

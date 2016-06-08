@@ -2,7 +2,7 @@ package org.tinydvr.jobs
 
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
-import org.tinydvr.config.{Configured, StaticConfiguration}
+import org.tinydvr.config._
 import org.tinydvr.db.{TinyDVRDB, Recording}
 import org.tinydvr.util.Singletons
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -13,13 +13,13 @@ import scala.concurrent.blocking
 object JobScheduler {
   private var exector = Option.empty[JobExecutor]
   private val scheduler = Singletons.actorSystem.scheduler
-  def initialize(staticConfig: StaticConfiguration): Unit = {
+  def initialize(configuration: TinyDvrConfiguration): Unit = {
     this.synchronized {
       if (exector.isDefined) throw new RuntimeException("The job scheduler was already initialized.")
-      val je = new JobExecutor(staticConfig)
+      val je = new JobExecutor(configuration)
 
       // make sure the database has been created
-      CheckDatabaseCreatedJob(staticConfig).run()
+      CheckDatabaseCreatedJob(configuration).run()
 
       // schedule update checks for stations
       scheduler.schedule(Duration.Zero, 1 hours)(je.checkStationsUpdate)
@@ -35,22 +35,23 @@ object JobScheduler {
   }
 }
 
-private class JobExecutor(val staticConfig: StaticConfiguration) extends Configured with TinyDVRDB {
+private class JobExecutor(val tinyDvrConfiguration: TinyDvrConfiguration)
+  extends Configured with TinyDVRDB {
   private val futures = scala.collection.mutable.HashSet[Future[Unit]]()
   private val logger = LoggerFactory.getLogger(getClass)
 
   def checkStationsUpdate(): Unit = {
-    runIfOverdue(dynamicConfig.lastStationUpdate, staticConfig.updateFrequencies.stations) {
+    runIfOverdue(tinyDvrConfiguration.lastStationUpdate, tinyDvrConfiguration.listings.updateStationFrequencyInHours) {
       logger.info("Updating Stations...")
-      UpdateStationsJob(staticConfig).run()
+      UpdateStationsJob(tinyDvrConfiguration).run()
     }
   }
 
   def checkListingUpdate(): Unit = {
-    runIfOverdue(dynamicConfig.lastListingsUpdate, staticConfig.updateFrequencies.listings) {
+    runIfOverdue(tinyDvrConfiguration.lastListingsUpdate, tinyDvrConfiguration.listings.updateListingsFrequencyInHours) {
       logger.info("Updating Listings....")
-      UpdateSchedulesJob(staticConfig).run()
-      UpdateProgramsJob(staticConfig).run()
+      UpdateSchedulesJob(tinyDvrConfiguration).run()
+      UpdateProgramsJob(tinyDvrConfiguration).run()
     }
   }
 
@@ -61,7 +62,7 @@ private class JobExecutor(val staticConfig: StaticConfiguration) extends Configu
   private def recordProgram(recording: Recording): Unit = {
     val future = Future {
       blocking {
-        RecordJob(recording, staticConfig).run()
+        RecordJob(recording, tinyDvrConfiguration).run()
       }
     }
     futures += future

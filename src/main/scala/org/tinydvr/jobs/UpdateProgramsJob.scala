@@ -1,11 +1,11 @@
 package org.tinydvr.jobs
 
-import org.joda.time.{DateTime, LocalDate}
-import org.tinydvr.config.StaticConfiguration
+import org.joda.time.DateTime
+import org.tinydvr.config.TinyDvrConfiguration
 import org.tinydvr.db.Program
 import org.tinydvr.util.SchedulesDirectAPI
 
-case class UpdateProgramsJob(val staticConfig: StaticConfiguration) extends BaseJob with SchedulesDirectAPI {
+case class UpdateProgramsJob(tinyDvrConfiguration: TinyDvrConfiguration) extends BaseJob with SchedulesDirectAPI {
 
   import org.tinydvr.schedulesdirect.api.Implicits._
 
@@ -38,10 +38,10 @@ case class UpdateProgramsJob(val staticConfig: StaticConfiguration) extends Base
     tinyDvrDb.insertOrReplaceProgram(programs)
 
     // purge old programs
-    val purgeDate = new DateTime().minusDays(staticConfig.listings.retain)
+    val purgeDate = new DateTime().minusDays(tinyDvrConfiguration.listings.retainProgramsPeriodInDays)
     logger.info(s"Erasing programs not seen since ${purgeDate}")
     val numDeleted = tinyDvrDb.eraseProgramsNotSeenSince(purgeDate)
     logger.info(s"Erased ${numDeleted} programs.")
-    dynamicConfig.lastListingsUpdate = new DateTime
+    tinyDvrConfiguration.lastListingsUpdate = new DateTime
   }
 }

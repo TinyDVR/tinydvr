@@ -5,7 +5,7 @@ import net.liftweb.json._
 import org.joda.time.{DateTime, LocalDate}
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Schema
-import org.tinydvr.config.{Configured, DatabaseConnectionInfo}
+import org.tinydvr.config.{DatabaseConnectionInfo, DatabaseConfigured}
 import org.tinydvr.schedulesdirect.api.{DateTimeSerializer, LocalDateSerializer}
 import org.tinydvr.util.DatabaseConnection
 
@@ -78,13 +78,13 @@ object TinyDVRDB extends Schema {
   }
 }
 
-trait TinyDVRDB extends Configured {
-  lazy val tinyDvrDb = new TinyDVRDBAPI(staticConfig.databaseInfo)
+trait TinyDVRDB extends DatabaseConfigured {
+  lazy val tinyDvrDb = new TinyDVRDBAPI(databaseConfiguration)
 }
 
 class TinyDVRDBAPI(db: DatabaseConnectionInfo) extends DatabaseConnection(db) {
 
-  import org.tinydvr.db.TinyDVRDB._
+  import TinyDVRDB._
 
   //
   // Database management

@@ -7,7 +7,7 @@ import org.tinydvr.db._
 /**
  * Provides access to common resources for execution tasks.
  */
-trait BaseJob extends Configured with TinyDVRDB {
+trait BaseJob extends Configured with DatabaseConfigurationFromProperties with TinyDVRDB {
 
   //
   // All jobs should implement this method.
@@ -19,7 +19,7 @@ trait BaseJob extends Configured with TinyDVRDB {
    * 1) Times the execution
    * 2) Catches any errors
    * 3) Prints the results of (1) and (2) to the logger.
-   * 4) Records when the job was started to the database.
+   * 4) TODO: Records when the job was started to the database.
    */
   def run(): Unit = {
     try {

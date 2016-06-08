@@ -1,11 +1,11 @@
 package org.tinydvr.jobs
 
 import org.joda.time.DateTime
-import org.tinydvr.config.StaticConfiguration
+import org.tinydvr.config.TinyDvrConfiguration
 import org.tinydvr.db._
 import org.tinydvr.util.SchedulesDirectAPI
 
-case class UpdateStationsJob(val staticConfig: StaticConfiguration) extends BaseJob with SchedulesDirectAPI {
+case class UpdateStationsJob(tinyDvrConfiguration: TinyDvrConfiguration) extends BaseJob with SchedulesDirectAPI {
 
   import org.tinydvr.schedulesdirect.api.Implicits._
 
@@ -40,6 +40,6 @@ case class UpdateStationsJob(val staticConfig: StaticConfiguration) extends Base
     }
     logger.info(s"Updating ${stations.size} stations for lineup ${lineup.name}")
     tinyDvrDb.replaceAllStations(stations)
-    dynamicConfig.lastStationUpdate = new DateTime
+    tinyDvrConfiguration.lastStationUpdate = new DateTime
   }
 }

@@ -1,12 +1,12 @@
 package org.tinydvr.jobs
 
 import java.io.File
-import org.tinydvr.config.StaticConfiguration
+import org.tinydvr.config.TinyDvrConfiguration
 import org.tinydvr.db.Recording
 import org.tinydvr.util.VariableReplacer
 import scala.sys.process._
 
-case class RecordJob(recording: Recording, val staticConfig: StaticConfiguration) extends BaseJob with VariableReplacer {
+case class RecordJob(recording: Recording, tinyDvrConfiguration: TinyDvrConfiguration) extends BaseJob with VariableReplacer {
 
   override protected def runInternal(): Unit = {
     try {
@@ -20,7 +20,7 @@ case class RecordJob(recording: Recording, val staticConfig: StaticConfiguration
         throw new RuntimeException(s"Could not find station ${recording.stationId} for recording ${recording.id}.")
       }
       // replace any variables in the configuration
-      val strings = staticConfig.recordings.directory :: staticConfig.recordings.fileName :: staticConfig.tuner.arguments
+      val strings = tinyDvrConfiguration.recordings.directory :: tinyDvrConfiguration.recordings.fileName :: tinyDvrConfiguration.tuner.arguments
       val (arguments, outputFile) = variableReplacer.replace(strings, station, program, recording) match {
         case path :: filename :: args => {
           (new File(path)).mkdirs
@@ -32,7 +32,7 @@ case class RecordJob(recording: Recording, val staticConfig: StaticConfiguration
       tinyDvrDb.beginRecording(recording.id, outputFile)
 
       // execute the recording
-      val cmd = (staticConfig.tuner.executable :: arguments) :+ outputFile
+      val cmd = (tinyDvrConfiguration.tuner.executable :: arguments) :+ outputFile
       logger.info("Executing " + cmd.mkString(" "))
       val pl = ProcessLogger(logger.info, logger.error)
       if (cmd.!(pl) != 0) {

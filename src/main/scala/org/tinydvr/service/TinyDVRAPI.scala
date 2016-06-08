@@ -2,14 +2,14 @@ package org.tinydvr.service
 
 import org.joda.time.DateTime
 import org.squeryl.PrimitiveTypeMode._
-import org.tinydvr.config.{Configured, StaticConfiguration}
+import org.tinydvr.config._
 import org.tinydvr.db._
 
 trait TinyDVRAPI extends Configured {
-  lazy val tinyDVRApi = new TinyDVRAPIImpl(staticConfig)
+  lazy val tinyDVRApi = new TinyDVRAPIImpl(tinyDvrConfiguration)
 }
 
-class TinyDVRAPIImpl(val staticConfig: StaticConfiguration) extends TinyDVRDB  {
+class TinyDVRAPIImpl(val tinyDvrConfiguration: TinyDvrConfiguration) extends Configured with TinyDVRDB  {
 
   def findScheduledPrograms(start: DateTime, end: DateTime): List[ScheduledProgramsResponse] = {
     scheduleResultsToDTO(

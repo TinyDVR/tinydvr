@@ -8,7 +8,7 @@ trait SchedulesDirectAPI extends Configured {
 
   // TODO: make this a def and re-create if token expires.
   lazy val schedulesDirectAPI = {
-    val creds = staticConfig.schedulesDirectCredentials
+    val creds = tinyDvrConfiguration.schedulesDirectCredentials
     val tokenResponse = SchedulesDirectAuthenticator.getToken(creds.username, creds.password).getResult
     if (tokenResponse.code != 0) throw ServiceOfflineException(tokenResponse.message)
     val token = tokenResponse.token

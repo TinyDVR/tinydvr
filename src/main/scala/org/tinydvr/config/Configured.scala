@@ -1,10 +1,18 @@
 package org.tinydvr.config
 
-trait Configured {
-  protected val staticConfig: StaticConfiguration
-  protected lazy val dynamicConfig = new DynamicConfiguration(staticConfig)
+trait Configured extends DatabaseConfigured {
+  protected def tinyDvrConfiguration: TinyDvrConfiguration
+  override protected def databaseConfiguration = tinyDvrConfiguration.databaseConfiguration
 }
 
-trait LiveConfiguration extends Configured {
-  override protected val staticConfig: StaticConfiguration = StaticConfigurationSingleton.fromProperties
+trait DatabaseConfigured {
+  protected def databaseConfiguration: DatabaseConnectionInfo
+}
+
+trait DatabaseConfigurationFromProperties extends DatabaseConfigured {
+  override protected def databaseConfiguration: DatabaseConnectionInfo = DatabaseConfigurationSingleton.fromProperties
+}
+
+trait ConfigurationFromProperties extends Configured with DatabaseConfigurationFromProperties {
+  protected lazy val tinyDvrConfiguration = new TinyDvrConfiguration(databaseConfiguration)
 }
